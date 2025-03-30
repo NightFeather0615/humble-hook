@@ -12,3 +12,10 @@ chrono = { version = "0.4.40", features = ["now"] }
 regex = { version = "1.11.1" }
 once_cell = { version = "1.21.3" }
 dotenvy = { version = "0.15.7" }
+
+[profile.release]
+incremental = false
+lto = "fat"
+opt-level = 3
+panic = "abort"
+strip = "debuginfo"
