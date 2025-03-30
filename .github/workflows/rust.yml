@@ -1,4 +1,4 @@
-name: Rust
+name: Build Rust
 
 on:
   push:
@@ -17,13 +17,13 @@ jobs:
     - uses: actions/checkout@v4
     
     - name: Build
-      run: cargo build --release --verbose
+      run: cargo build --release
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: humble-hook
-        path: ~/target/release/humble-hook
+        path: ${{ github.workspace }}/target/release/humble-hook
         
     - name: Cache
       uses: actions/cache@v4
