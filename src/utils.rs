@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use once_cell::sync::Lazy;
+use regex::Regex;
 use reqwest::blocking::Client;
 use scraper::Html;
 use anyhow::{Context, Result};
@@ -114,11 +115,32 @@ pub(crate) fn update_record(
 }
 
 pub(crate) trait ConvertMarkdown {
-  fn to_md(self: Self) -> Self;
+  fn to_md(self: &mut Self) -> Self;
 }
 
 impl ConvertMarkdown for String {
-  fn to_md(self: Self) -> Self {
+  fn to_md(self: &mut Self) -> Self {
+    let a_r = Regex::new(r#"<a.*href="(?<link>.*)".*>(?<text>.*)</a>"#).unwrap();
+    let iframe_r = Regex::new(r#"<iframe.*src="(?<link>.*)".*title="(?<text>[^"]*)".*>.*</iframe>"#).unwrap();
+
+    *self = a_r.replace_all(
+      &self,
+      |c: &regex::Captures<'_>| format!(
+        "[{}]({})",
+        c.name("text").expect("").as_str(),
+        c.name("link").expect("").as_str()
+      )
+    ).to_string();
+
+    *self = iframe_r.replace_all(
+      &self,
+      |c: &regex::Captures<'_>| format!(
+        "[{}]({})",
+        c.name("text").expect("").as_str(),
+        c.name("link").expect("").as_str()
+      )
+    ).to_string();
+
     self
       .replace("<em>", "*")
       .replace("</em>", "*")
@@ -130,6 +152,8 @@ impl ConvertMarkdown for String {
       .replace("</b>", "**")
       .replace("<p>", "")
       .replace("</p>", "")
+      .replace("<br>", "\n")
+      .replace("</br>", "\n")
   }
 }
 
