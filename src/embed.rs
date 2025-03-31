@@ -35,12 +35,13 @@ pub(crate) struct EmbedMessage {
   timestamp: DateTime<Utc>,
   image_url: String,
   footer: String,
-  fields: Vec<EmbedField>
+  fields: Vec<EmbedField>,
+  machine_name: String
 }
 
 impl EmbedMessage {
   pub(crate) fn from_product(product: Product) -> Self {
-    println!("[INFO] Encoding product embed...");
+    println!("[ INFO / EmbedMessage::from_product ] Encoding `{}` embed...", product.machine_name);
 
     let mut fields = Vec::new();
 
@@ -87,7 +88,7 @@ impl EmbedMessage {
 
       for item in product.item_names.into_iter() {
         let md = format!("- {item}\n");
-        if (items_md.len() + md.len()) >= 1024 {
+        if (items_md.len() + md.len() + "- ...".len()) >= 1024 {
           items_md.push_str("- ...");
           break;
         }
@@ -108,7 +109,7 @@ impl EmbedMessage {
 
       for charity in product.charity_names.into_iter() {
         let md = format!("- {charity}\n");
-        if (charities_md.len() + md.len()) >= 1024 {
+        if (charities_md.len() + md.len() + "- ...".len()) >= 1024 {
           charities_md.push_str("- ...");
           break;
         }
@@ -131,7 +132,8 @@ impl EmbedMessage {
       timestamp: product.start_date,
       image_url: product.thumbnail_image_url,
       footer: product.author,
-      fields: fields
+      fields: fields,
+      machine_name: product.machine_name
     }
   }
 
@@ -167,7 +169,7 @@ impl EmbedMessage {
 
     let token = ENV.bot_token.as_str();
 
-    println!("[INFO] Sending embed...");
+    println!("[ INFO / EmbedMessage::send ] Sending `{}` embed...", self.machine_name);
 
     let res = HTTP_CLIENT
       .post(
@@ -178,7 +180,7 @@ impl EmbedMessage {
       .body(json.to_string())
       .send()?;
 
-    println!("[INFO] Crossposting...");
+    println!("[ INFO / EmbedMessage::send ] Crossposting `{}` embed...", self.machine_name);
 
     let message_id = serde_json::from_str::<Value>(
       &res.text()?
@@ -192,7 +194,7 @@ impl EmbedMessage {
       .send()?;
     
     if res.status() != StatusCode::OK {
-      println!("[WARN] Crosspost failed.")
+      println!("[ WARN / EmbedMessage::send ] Crosspost `{}` embed failed.", self.machine_name);
     }
 
     Ok(())

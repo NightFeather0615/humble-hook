@@ -18,7 +18,7 @@ pub(crate) static ENV: Lazy<EnvConfig> = Lazy::new(
 
 impl EnvConfig {
   fn init() -> Result<Self> {
-    println!("[INFO] Loading environment variables...");
+    println!("[ INFO / EnvConfig::init ] Loading environment variables...");
 
     dotenvy::from_filename_override(".env")?;
     

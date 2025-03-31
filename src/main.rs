@@ -79,14 +79,15 @@ fn process_category(
 }
 
 fn main() -> Result<()> {
-  println!("[INFO] Fetching all bundle info...");
+  println!("[ INFO / main ] Fetching all bundle info...");
+
   let document = fetch_webpage(&format!("{HUMBLE_BASE_URL}/bundles"))?;
 
   let selector = Selector::parse(
     "script#landingPage-json-data"
   ).expect("Failed init selector `script#landingPage-json-data`");
 
-  println!("[INFO] Parsing all bundle info...");
+  println!("[ INFO / main ] Parsing all bundle info...");
 
   let bundle_datas: Value = serde_json::from_str(
     document
@@ -98,7 +99,7 @@ fn main() -> Result<()> {
       .context("Cannot get JSON text")?
   )?;
 
-  println!("[INFO] Processing games...");
+  println!("[ INFO / main ] Processing games...");
 
   process_category(
     &bundle_datas["data"]["games"]["mosaic"][0]["products"],
@@ -106,7 +107,7 @@ fn main() -> Result<()> {
     &ENV.game_message_id
   )?;
 
-  println!("[INFO] Processing books...");
+  println!("[ INFO / main ] Processing books...");
 
   process_category(
     &bundle_datas["data"]["books"]["mosaic"][0]["products"],
@@ -114,7 +115,7 @@ fn main() -> Result<()> {
     &ENV.ebook_message_id
   )?;
 
-  println!("[INFO] Processing softwares...");
+  println!("[ INFO / main ] Processing softwares...");
 
   process_category(
     &bundle_datas["data"]["software"]["mosaic"][0]["products"],

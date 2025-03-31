@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use once_cell::sync::Lazy;
-use regex::Regex;
 use reqwest::blocking::Client;
 use scraper::Html;
 use anyhow::{Context, Result};
@@ -16,7 +15,7 @@ pub(crate) static HTTP_CLIENT: Lazy<Client> = Lazy::new(|| reqwest::blocking::Cl
 
 
 pub(crate) fn fetch_webpage(url: &str) -> Result<Html> {
-  println!("[INFO] Fetching webpage...");
+  println!("[ INFO / fetch_webpage ] Fetching `{}`...", url);
 
   let res = HTTP_CLIENT.get(url).send()?.text()?;
 
@@ -29,7 +28,7 @@ pub(crate) fn fetch_record(
 ) -> Result<HashMap<String, i64>> {
   let token = ENV.bot_token.as_str();
 
-  println!("[INFO] Fetching record...");
+  println!("[ INFO / fetch_record ] Fetching record `{channel_id}` -> `{message_id}`...");
 
   let res = HTTP_CLIENT
     .get(format!("{DISCORD_BASE_URL}/channels/{channel_id}/messages/{message_id}"))
@@ -38,7 +37,7 @@ pub(crate) fn fetch_record(
 
   let content = serde_json::from_str::<Value>(&res.text()?)?.try_get_string("content")?;
 
-  println!("[INFO] Parsing record...");
+  println!("[ INFO / fetch_record ] Parsing record `{channel_id}` -> `{message_id}`...");
 
   let records = content
     .replace("```", "")
@@ -73,7 +72,7 @@ pub(crate) fn update_record(
 ) -> Result<()> {
   let token = ENV.bot_token.as_str();
 
-  println!("[INFO] Encoding record...");
+  println!("[ INFO / update_record ] Encoding record `{channel_id}` -> `{message_id}`...");
 
   let mut msg = new_record
     .into_iter()
@@ -98,7 +97,7 @@ pub(crate) fn update_record(
     }
   );
 
-  println!("[INFO] Patching record...");
+  println!("[ INFO / update_record ] Patching record `{channel_id}` -> `{message_id}`...");
 
   HTTP_CLIENT
     .patch(
@@ -112,49 +111,6 @@ pub(crate) fn update_record(
     .send()?;
 
   Ok(())
-}
-
-pub(crate) trait ConvertMarkdown {
-  fn to_md(self: &mut Self) -> Self;
-}
-
-impl ConvertMarkdown for String {
-  fn to_md(self: &mut Self) -> Self {
-    let a_r = Regex::new(r#"<a.*href="(?<link>.*)".*>(?<text>.*)</a>"#).unwrap();
-    let iframe_r = Regex::new(r#"<iframe.*src="(?<link>.*)".*title="(?<text>[^"]*)".*>.*</iframe>"#).unwrap();
-
-    *self = a_r.replace_all(
-      &self,
-      |c: &regex::Captures<'_>| format!(
-        "[{}]({})",
-        c.name("text").expect("").as_str(),
-        c.name("link").expect("").as_str()
-      )
-    ).to_string();
-
-    *self = iframe_r.replace_all(
-      &self,
-      |c: &regex::Captures<'_>| format!(
-        "[{}]({})",
-        c.name("text").expect("").as_str(),
-        c.name("link").expect("").as_str()
-      )
-    ).to_string();
-
-    self
-      .replace("<em>", "*")
-      .replace("</em>", "*")
-      .replace("<i>", "*")
-      .replace("</i>", "*")
-      .replace("<strong>", "**")
-      .replace("</strong>", "**")
-      .replace("<b>", "**")
-      .replace("</b>", "**")
-      .replace("<p>", "")
-      .replace("</p>", "")
-      .replace("<br>", "\n")
-      .replace("</br>", "\n")
-  }
 }
 
 pub(crate) trait TryGet {
