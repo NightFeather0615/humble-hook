@@ -6,7 +6,6 @@ use anyhow::Result;
 
 use crate::utils::{
   fetch_webpage,
-  ConvertMarkdown,
   TryGet,
   HUMBLE_BASE_URL
 };
@@ -137,9 +136,9 @@ impl Product {
         start_date: (json.try_get_string("start_date|datetime")? + "Z").parse()?,
         end_date: (json.try_get_string("end_date|datetime")? + "Z").parse()?,
         _description: basic_data.try_get_string("description")?,
-        detailed_blurb: json.try_get_string("detailed_marketing_blurb")?.to_md(),
-        _blurb: json.try_get_string("marketing_blurb")?.to_md(),
-        _short_blurb: json.try_get_string("short_marketing_blurb")?.to_md(),
+        detailed_blurb: htmd::convert(json.try_get_str("detailed_marketing_blurb")?)?,
+        _blurb: htmd::convert(json.try_get_str("marketing_blurb")?)?,
+        _short_blurb: htmd::convert(json.try_get_str("short_marketing_blurb")?)?,
         worth: basic_data["msrp|money"].try_get_f64("amount")?.round() as i32,
         high_price: (*highest_tier_data).round() as i32,
         low_price: (*lowest_tier_data).round() as i32,

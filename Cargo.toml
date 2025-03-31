@@ -9,9 +9,9 @@ reqwest = { version = "0.12.15", features = ["blocking"] }
 anyhow = { version = "1.0.97" }
 serde_json = { version = "1.0.140" }
 chrono = { version = "0.4.40", features = ["now"] }
-regex = { version = "1.11.1" }
 once_cell = { version = "1.21.3" }
 dotenvy = { version = "0.15.7" }
+htmd = { version = "0.1.6" }
 
 [profile.release]
 incremental = false
